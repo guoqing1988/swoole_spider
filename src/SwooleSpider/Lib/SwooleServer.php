@@ -62,16 +62,16 @@ class SwooleServer
 
     function onWorkerStop(\swoole_server $server, $worker_id)
     {
-        $this->log(self::$SERVER_NAME." onWorkerStop,worker_id:".$worker_id);
+        $this->log(" onWorkerStop,worker_id:".$worker_id);
     }
 
     function onReceive(\swoole_server $server, $fd, $from_id, $data)
     {
-
+        $this->log(['op'=>'onReceive','data'=>$data,'from_id'=>$from_id,'fd'=>$fd]);
     }
     function onConnect(\swoole_server $server, $fd, $from_id)
     {
-        //\Swoole::$php->log->info(self::$worker_id." on connected with fd{$fd}");
+        $this->log(['op'=>'onConnect','from_id'=>$from_id,'fd'=>$fd]);
     }
 
     function onClose(\swoole_server $server, $fd, $from_id)
@@ -135,6 +135,7 @@ class SwooleServer
     }
 
     function log($msg){
+        $msg = is_array($msg)?json_encode($msg,256):$msg;
         echo date('Y-m-d H:i:s') ." ".self::$SERVER_NAME.  "  : $msg\n";
     }
 
