@@ -9,7 +9,7 @@ $redisconf = array(
     'port'    => 6379,
     'password' => '',
     'timeout' => 0.5,
-    'pconnect' => false,
+    'pconnect' => true,
     'name'=>'spider_queue'
 );
 
