@@ -173,7 +173,7 @@ class SwooleServer
         }else{
             goto usage;
         }
-        $server_pid = file_get_contents($this->pid_file);
+        $server_pid = file_exists($this->pid_file)?file_get_contents($this->pid_file):0;
         if ($cmd == 'reload') {
             if (empty($server_pid)) {
                 exit("Server is not running.\n");

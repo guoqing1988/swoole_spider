@@ -85,7 +85,7 @@ class RedisQueue implements QueueInterface
         if ($this->isQueued($queue)) {
             return $this->next();
         } else {
-            return unserialize($queue);
+            return @unserialize($queue);
         }
     }
 
