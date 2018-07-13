@@ -1,6 +1,5 @@
 <?php
-$client = new swoole_client(SWOOLE_ASYNC); //异步非阻塞
-
+$client = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_ASYNC);
 $client->on("connect", function($cli) {
     $cli->send("hello world\n");
 });
