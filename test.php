@@ -24,7 +24,7 @@ $sp->timeout = 100;
 $sp->logFile = SPIDER_PATH . '/'.SPIDER_NAME.'.log';
 $sp->pidFile = SPIDER_PATH . '/'.SPIDER_NAME.'.pid';
 $sp->setQueue('redis',$redisconf);
-$sp->add('https://car.autohome.com.cn/mtn/series/cycle/27703',['tag'=>time()]);
+$sp->add('http://baidu.com',['tag'=>time()]);
 // $sp->seed[] = 'https://car.autohome.com.cn/mtn/series/cycle/27703';
 // $sp->seed[] = ['https://car.autohome.com.cn/mtn/series/cycle/27703',[
 //  'tag'=>'autohome_spider',

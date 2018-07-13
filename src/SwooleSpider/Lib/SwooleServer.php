@@ -196,6 +196,6 @@ class SwooleServer
             exit("Usage: php {$argv[0]} start|stop|reload\n");
 
         }
-        // $this->run($config);
+        $this->run($config);
     }
 }

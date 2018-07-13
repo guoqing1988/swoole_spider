@@ -38,11 +38,11 @@ class RedisQueue implements QueueInterface
     public function getInstance()
     {
         if (!$this->redis) {
-            $this->redis = new \Redis();
-            $this->redis->pconnect($this->config['host'], $this->config['port']);
-            if($this->config['password']){
-                $this->redis->auth($this->config['password']);
-            }
+            $this->redis = new RedisServer($this->config);
+            // $this->redis->pconnect($this->config['host'], $this->config['port']);
+            // if($this->config['password']){
+            //     $this->redis->auth($this->config['password']);
+            // }
         }
         return $this->redis;
     }
@@ -105,6 +105,7 @@ class RedisQueue implements QueueInterface
 
     public function isQueued($queue)
     {
+        $queue = is_array($queue)?serialize($queue):$queue;
         if ($this->bloomFilter) {
             return $this->bfHas(md5($queue));
         } else {
@@ -157,4 +158,88 @@ class RedisQueue implements QueueInterface
     {
         return abs(crc32(md5('m' . $index . $item))) % $this->bfSize;
     }
+}
+class RedisServer
+{
+    public $_redis;
+    public $config;
+
+    public static $prefix = "autoinc_key:";
+
+    function __construct($config)
+    {
+        $this->config = $config;
+        $this->connect();
+    }
+
+    function connect()
+    {
+        try
+        {
+            if ($this->_redis)
+            {
+                unset($this->_redis);
+            }
+            $this->_redis = new \Redis();
+            if ($this->config['pconnect'])
+            {
+                $this->_redis->pconnect($this->config['host'], $this->config['port'], $this->config['timeout']);
+            }
+            else
+            {
+                $this->_redis->connect($this->config['host'], $this->config['port'], $this->config['timeout']);
+            }
+            
+            if (!empty($this->config['password']))
+            {
+                $this->_redis->auth($this->config['password']);
+            }
+            if (!empty($this->config['database']))
+            {
+                $this->_redis->select($this->config['database']);
+            }
+        }
+        catch (\RedisException $e)
+        {
+            $this->log(__CLASS__ . " Swoole Redis Exception" . var_export($e, 1));
+            return false;
+        }
+    }
+
+    function __call($method, $args = array())
+    {
+        $reConnect = false;
+        while (1)
+        {
+            try
+            {
+                $result = call_user_func_array(array($this->_redis, $method), $args);
+            }
+            catch (\RedisException $e)
+            {
+                //已重连过，仍然报错
+                if ($reConnect)
+                {
+                    throw $e;
+                }
+
+                $this->log(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
+                 Exception(Msg=" . $e->getMessage() . ", Code=" . $e->getCode() . "), Redis->{$method}, Params=" . var_export($args, 1));
+                $this->_redis->close();
+                $this->connect();
+                $reConnect = true;
+                continue;
+            }
+            return $result;
+        }
+        //不可能到这里
+        return false;
+    }
+
+
+    function log($msg){
+        $msg = is_array($msg)?json_encode($msg,1):$msg;
+        echo date('Y-m-d H:i:s') ." RedisServer  : $msg\n";
+    }
+
 }
